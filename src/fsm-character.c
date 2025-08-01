@@ -16,6 +16,8 @@ SC_FSM *FSMsCharacter;
 #define PLAYER_Y_VEL_MAX    0.8025f
 #define PLAYER_Y_VEL_START -PLAYER_Y_VEL_MAX
 #define PLAYER_Y_ACC        0.00214f
+// This should allow a bunny hop of 1 height
+#define PLAYER_Y_VEL_STOP  -0.214f
 
 #define GROUND_Y 600.f
 
@@ -201,6 +203,15 @@ void CharacterExitStandJump(void *el, Uint64 *opts)
 
 int CharacterInputStandJump(void *el, SC_Event e, Uint64 now, Uint64 *opts)
 {
+    SC_Character *c = el;
+
+    if (e == SC_EVENT_JUMP_STOP) {
+        if (c->vel.y < PLAYER_Y_VEL_STOP) {
+            c->vel.y = PLAYER_Y_VEL_STOP;
+        }
+        return SC_CHARACTER_STAND_FALL;
+    }
+
     return SC_FSM_NO_CHANGE;
 }
 
@@ -261,6 +272,15 @@ void CharacterExitRunJump(void *el, Uint64 *opts)
 
 int CharacterInputRunJump(void *el, SC_Event e, Uint64 now, Uint64 *opts)
 {
+    SC_Character *c = el;
+
+    if (e == SC_EVENT_JUMP_STOP) {
+        if (c->vel.y < PLAYER_Y_VEL_STOP) {
+            c->vel.y = PLAYER_Y_VEL_STOP;
+        }
+        return SC_CHARACTER_RUN_FALL;
+    }
+
     return SC_FSM_NO_CHANGE;
 }
 
