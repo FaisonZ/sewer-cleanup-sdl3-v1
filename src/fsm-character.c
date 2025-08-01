@@ -10,6 +10,17 @@ SC_FSM *FSMsCharacter;
 #define PLAYER_X_ACC_RUN   0.00075f
 #define PLAYER_X_ACC_STOP  0.00050f
 
+// Max height = 150
+// Time to peak = 375
+// Time to ground = 750
+#define PLAYER_Y_VEL_MAX    0.8025f
+#define PLAYER_Y_VEL_START -PLAYER_Y_VEL_MAX
+#define PLAYER_Y_ACC        0.00214f
+
+#define GROUND_Y 600.f
+
+#define PLAYER_JUMP_HEIGHT_MAX 120.0f
+
 #define CHARACTER_MOVE_RIGHT 0b01
 #define CHARACTER_MOVE_LEFT  0b10
 
@@ -17,6 +28,7 @@ void CharacterEnterStand(void *el, Uint64 *opts)
 {
     SC_Character *c = el;
     c->vel.x = 0;
+    c->vel.y = 0;
 }
 
 void CharacterExitStand(void *el, Uint64 *opts)
@@ -34,6 +46,9 @@ int CharacterInputStand(void *el, SC_Event e, Uint64 now, Uint64 *opts)
         *opts &= ~*opts;
         *opts |= optUpdate;
         return SC_CHARACTER_RUN_START;
+    } else if (e == SC_EVENT_JUMP) {
+        SDL_Log("Jump");
+        return SC_CHARACTER_STAND_JUMP;
     }
 
     return SC_FSM_NO_CHANGE;
@@ -168,6 +183,66 @@ int CharacterTickRunStop(void *el, Uint64 delta, Uint64 now, Uint64 *opts)
     return SC_FSM_NO_CHANGE;
 }
 
+void CharacterEnterStandJump(void *el, Uint64 *opts)
+{
+    SC_Character *c = el;
+    c->vel.y = PLAYER_Y_VEL_START;
+    c->acc.y = PLAYER_Y_ACC;
+}
+
+void CharacterExitStandJump(void *el, Uint64 *opts)
+{
+}
+
+int CharacterInputStandJump(void *el, SC_Event e, Uint64 now, Uint64 *opts)
+{
+    return SC_FSM_NO_CHANGE;
+}
+
+int CharacterTickStandJump(void *el, Uint64 delta, Uint64 now, Uint64 *opts)
+{
+    SC_Character *c = el;
+    c->vel.y += delta * c->acc.y;
+
+    if (c->vel.y >= 0) {
+        return SC_CHARACTER_STAND_FALL;
+    }
+
+    c->pos.y += delta * c->vel.y;
+    return SC_FSM_NO_CHANGE;
+}
+
+void CharacterEnterStandFall(void *el, Uint64 *opts)
+{
+}
+
+void CharacterExitStandFall(void *el, Uint64 *opts)
+{
+}
+
+int CharacterInputStandFall(void *el, SC_Event e, Uint64 now, Uint64 *opts)
+{
+    return SC_FSM_NO_CHANGE;
+}
+
+int CharacterTickStandFall(void *el, Uint64 delta, Uint64 now, Uint64 *opts)
+{
+    SC_Character *c = el;
+    c->vel.y += delta * c->acc.y;
+
+    if (c->vel.y >= PLAYER_Y_VEL_MAX) {
+        c->vel.y = PLAYER_Y_VEL_MAX;
+    }
+
+    c->pos.y += delta * c->vel.y;
+
+    if (c->pos.y >= GROUND_Y) {
+        c->pos.y = GROUND_Y;
+        return SC_CHARACTER_STAND;
+    }
+    return SC_FSM_NO_CHANGE;
+}
+
 void initCharacterFSM()
 {
     FSMsCharacter = (SC_FSM *) SDL_calloc(SC_CHARACTER_MOVE_STATE_TOTAL, sizeof(SC_FSM));
@@ -195,6 +270,18 @@ void initCharacterFSM()
     runStop->exit = CharacterExitRunStop;
     runStop->input = CharacterInputRunStop;
     runStop->tick = CharacterTickRunStop;
+
+    SC_FSM *standJump = FSMsCharacter + SC_CHARACTER_STAND_JUMP;
+    standJump->enter = CharacterEnterStandJump;
+    standJump->exit = CharacterExitStandJump;
+    standJump->input = CharacterInputStandJump;
+    standJump->tick = CharacterTickStandJump;
+
+    SC_FSM *standFall = FSMsCharacter + SC_CHARACTER_STAND_FALL;
+    standFall->enter = CharacterEnterStandFall;
+    standFall->exit = CharacterExitStandFall;
+    standFall->input = CharacterInputStandFall;
+    standFall->tick = CharacterTickStandFall;
 }
 
 void destroyCharacterFSM()

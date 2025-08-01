@@ -13,13 +13,6 @@
 SDL_Window *window;
 SDL_Renderer *renderer;
 
-#define GROUND_Y 600.f
-
-// These needed for the character FSM
-#define PLAYER_MAX_VEL_Y 0.5f
-#define PLAYER_MAX_JUMP_HEIGHT 120.0f
-#define PLAYER_ACC 0.0004f
-
 #define SC_EVENT_KEYUP   0b0
 #define SC_EVENT_KEYDOWN 0b1
 
@@ -126,6 +119,7 @@ void handleInput(SC_AppState *s, Uint64 event, Uint32 keyFlag, Uint64 now)
             eventCharacter(s->characters, SC_EVENT_RUN_START, now, CHARACTER_MOVE_LEFT);
         } else if (keyFlag == KEY_JUMP && (s->keysDown & KEY_JUMP) == 0) {
             s->keysDown |= KEY_JUMP;
+            eventCharacter(s->characters, SC_EVENT_JUMP, now, 0);
         }
     } else if (event == SC_EVENT_KEYUP) {
         if (keyFlag == KEY_RIGHT && (s->keysDown & KEY_RIGHT) > 0) {
@@ -136,6 +130,7 @@ void handleInput(SC_AppState *s, Uint64 event, Uint32 keyFlag, Uint64 now)
             eventCharacter(s->characters, SC_EVENT_RUN_STOP, now, CHARACTER_MOVE_LEFT);
         } else if (keyFlag == KEY_JUMP && (s->keysDown & KEY_JUMP) > 0) {
             s->keysDown &= ~KEY_JUMP;
+            eventCharacter(s->characters, SC_EVENT_JUMP_STOP, now, 0);
         }
     }
 }
@@ -200,6 +195,13 @@ SDL_AppResult SDL_AppIterate(void *appstate)
     // RENDER
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
     SDL_RenderClear(renderer);
+
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
+    SDL_RenderLine(renderer, 0, GROUND_Y, WINDOW_WIDTH, GROUND_Y);
+    SDL_RenderLine(renderer, 0, GROUND_Y - 40.0f, WINDOW_WIDTH, GROUND_Y - 40.0f);
+    SDL_RenderLine(renderer, 0, GROUND_Y - 80.0f, WINDOW_WIDTH, GROUND_Y - 80.0f);
+    SDL_RenderLine(renderer, 0, GROUND_Y - 120.0f, WINDOW_WIDTH, GROUND_Y - 120.0f);
+    SDL_RenderLine(renderer, 0, GROUND_Y - 160.0f, WINDOW_WIDTH, GROUND_Y - 160.0f);
 
     SDL_FRect p = {
         .x = scAppState->characters->pos.x - 20.0f,

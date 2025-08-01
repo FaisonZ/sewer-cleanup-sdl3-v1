@@ -6,10 +6,9 @@
 typedef enum SC_Event {
     SC_EVENT_RUN_START,
     SC_EVENT_RUN_STOP,
-    SC_EVENT_JUMP_START,
+    SC_EVENT_JUMP,
     SC_EVENT_JUMP_STOP,
-    SC_EVENT_FALL_START,
-    SC_EVENT_FALL_STOP,
+    SC_EVENT_FALL,
 } SC_Event;
 
 #define SC_FSM_NO_CHANGE -1
@@ -38,13 +37,15 @@ typedef struct SC_FSM {
     int (*tick)(void *el, Uint64 delta, Uint64 now, Uint64 *opts);
 } SC_FSM;
 
-#define SC_CHARACTER_MOVE_STATE_TOTAL 4
+#define SC_CHARACTER_MOVE_STATE_TOTAL 6
 
 typedef enum SC_Character_State {
     SC_CHARACTER_STAND,
     SC_CHARACTER_RUN_START,
     SC_CHARACTER_RUN,
     SC_CHARACTER_RUN_STOP,
+    SC_CHARACTER_STAND_JUMP,
+    SC_CHARACTER_STAND_FALL,
 } SC_Character_State;
 
 #endif
