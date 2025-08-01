@@ -51,7 +51,6 @@ int CharacterInputStand(void *el, SC_Event e, Uint64 now, Uint64 *opts)
         *opts |= optUpdate;
         return SC_CHARACTER_RUN_START;
     } else if (e == SC_EVENT_JUMP) {
-        //SDL_Log("Jump");
         return SC_CHARACTER_STAND_JUMP;
     }
 
@@ -67,7 +66,6 @@ void CharacterEnterRun(void *el, Uint64 *opts)
 {
     SC_Character *c = el;
     float dir = (*opts & CHARACTER_MOVE_RIGHT) > 0 ? 1.0f : -1.0f;
-    //SDL_Log("%f", dir);
     c->vel.x = dir * PLAYER_X_VEL_MAX;
     c->vel.y = 0;
     c->acc.x = 0;
@@ -159,6 +157,11 @@ void CharacterEnterRunStop(void *el, Uint64 *opts)
 {
     SC_Character *c = el;
     float dir = (*opts & CHARACTER_MOVE_RIGHT) > 0 ? -1.0f : 1.0f;
+    if (dir < 0 && c->vel.x < 0) {
+        dir = 1.0f;
+    } else if (dir > 0 && c->vel.x > 0) {
+        dir = -1.0f;
+    }
     c->acc.x = dir * PLAYER_X_ACC_STOP;
     c->vel.y = 0;
     c->acc.y = 0;
@@ -173,7 +176,6 @@ int CharacterInputRunStop(void *el, SC_Event e, Uint64 now, Uint64 *opts)
     SC_Character *c = el;
 
     if (e == SC_EVENT_RUN_START) {
-        //SDL_Log("Curr: RunStop, Next: RunStart, Opts: %"PRIu64, *opts);
         return SC_CHARACTER_RUN_START;
     } else if (e == SC_EVENT_RUN_STOP) {
         // If both left and right were down, update *opts with
@@ -305,21 +307,16 @@ void CharacterEnterRunStartJump(void *el, Uint64 *opts)
     SC_Character *c = el;
     float dir = (*opts & CHARACTER_MOVE_RIGHT) > 0 ? 1.0f : -1.0f;
 
-    SDL_Log("RunStartJump - dir: %f | X vel: %f | Y vel: %f", dir, c->vel.x, c->vel.y);
-
     if (c->vel.x == 0) {
         c->vel.x = dir * PLAYER_X_VEL_START;
     }
     c->acc.x = dir * PLAYER_X_ACC_RUN;
-    //SDL_Log("RunStartJump - acc: %f", c->acc.x);
 
     if (c->vel.y == 0) {
         c->vel.y = PLAYER_Y_VEL_START;
     }
 
     c->acc.y = PLAYER_Y_ACC;
-
-    SDL_Log("-- EnterRunStartJump -- dir: %f | acc.x: %f | acc.y %f", dir, c->acc.x, c->acc.y);
 }
 
 void CharacterExitRunStartJump(void *el, Uint64 *opts)
@@ -342,10 +339,7 @@ int CharacterInputRunStartJump(void *el, SC_Event e, Uint64 now, Uint64 *opts)
         if (c->vel.y < PLAYER_Y_VEL_STOP) {
             c->vel.y = PLAYER_Y_VEL_STOP;
         }
-        SDL_Log("%"SDL_PRIu64, *opts);
         *opts |= c->acc.x > 0 ? CHARACTER_MOVE_RIGHT : CHARACTER_MOVE_LEFT;
-        SDL_Log("%"SDL_PRIu64, *opts);
-        SDL_Log("OOPS");
         return SC_CHARACTER_RUN_START_FALL;
     }
 
@@ -372,7 +366,6 @@ int CharacterTickRunStartJump(void *el, Uint64 delta, Uint64 now, Uint64 *opts)
 
     if (c->vel.y >= 0) {
         *opts |= c->acc.x > 0 ? CHARACTER_MOVE_RIGHT : CHARACTER_MOVE_LEFT;
-        //SDL_Log("OOOOOOPS");
         return SC_CHARACTER_RUN_START_FALL;
     }
 
@@ -384,15 +377,12 @@ void CharacterEnterRunStartFall(void *el, Uint64 *opts)
 {
     SC_Character *c = el;
     float dir = (*opts & CHARACTER_MOVE_RIGHT) > 0 ? 1.0f : -1.0f;
-    //SDL_Log("RunStartFall - dir: %f | X vel: %f | Y vel: %f", dir, c->vel.x, c->vel.y);
     if (c->vel.x == 0) {
         c->vel.x = dir * PLAYER_X_VEL_START;
     }
     c->acc.x = dir * PLAYER_X_ACC_RUN;
 
     c->acc.y = PLAYER_Y_ACC;
-
-    SDL_Log("-- EnterRunStartFall -- dir: %f | acc.x: %f | acc.y %f | opts %" SDL_PRIu64, dir, c->acc.x, c->acc.y, *opts);
 }
 
 void CharacterExitRunStartFall(void *el, Uint64 *opts)
@@ -443,8 +433,7 @@ int CharacterTickRunStartFall(void *el, Uint64 delta, Uint64 now, Uint64 *opts)
     if (c->pos.y >= GROUND_Y) {
         c->pos.y = GROUND_Y;
         *opts |= (c->acc.x > 0 ? CHARACTER_MOVE_RIGHT : CHARACTER_MOVE_LEFT);
-        SDL_Log("-- TickRunStartFall -- opts %"SDL_PRIu64, *opts);
-        return SC_CHARACTER_RUN;
+        return SC_CHARACTER_RUN_START;
     }
 
     return SC_FSM_NO_CHANGE;
@@ -470,7 +459,6 @@ int CharacterInputRunJump(void *el, SC_Event e, Uint64 now, Uint64 *opts)
     if (e == SC_EVENT_RUN_STOP) {
         return SC_CHARACTER_RUN_STOP_JUMP;
     } else if (e == SC_EVENT_RUN_START) {
-        //SDL_Log("InputRunJump both keys");
         *opts &= ~(c->vel.x > 0 ? CHARACTER_MOVE_LEFT : CHARACTER_MOVE_RIGHT);
         *opts |= c->vel.x > 0 ? CHARACTER_MOVE_RIGHT : CHARACTER_MOVE_LEFT;
         return SC_CHARACTER_RUN_STOP_JUMP;
@@ -540,7 +528,6 @@ int CharacterTickRunFall(void *el, Uint64 delta, Uint64 now, Uint64 *opts)
     if (c->pos.y >= GROUND_Y) {
         c->pos.y = GROUND_Y;
         *opts |= (c->vel.x > 0 ? CHARACTER_MOVE_RIGHT : CHARACTER_MOVE_LEFT);
-        SDL_Log("-- TickRunFall -- opts %" SDL_PRIu64, *opts);
         return SC_CHARACTER_RUN;
     }
 
@@ -552,6 +539,12 @@ void CharacterEnterRunStopJump(void *el, Uint64 *opts)
     SC_Character *c = el;
     float dir = (*opts & CHARACTER_MOVE_RIGHT) > 0 ? -1.0f : 1.0f;
 
+    if (dir < 0 && c->vel.x < 0) {
+        dir = 1.0f;
+    } else if (dir > 0 && c->vel.x > 0) {
+        dir = -1.0f;
+    }
+
     c->acc.x = dir * PLAYER_X_ACC_STOP;
 
     if (c->vel.y == 0) {
@@ -559,8 +552,6 @@ void CharacterEnterRunStopJump(void *el, Uint64 *opts)
     }
 
     c->acc.y = PLAYER_Y_ACC;
-
-    SDL_Log("-- EnterRunStopJump -- dir: %f | acc.x: %f | acc.y %f", dir, c->acc.x, c->acc.y);
 }
 
 void CharacterExitRunStopJump(void *el, Uint64 *opts)
@@ -572,10 +563,8 @@ int CharacterInputRunStopJump(void *el, SC_Event e, Uint64 now, Uint64 *opts)
     SC_Character *c = el;
 
     if (e == SC_EVENT_RUN_START) {
-        SDL_Log("Curr: RunStop, Next: RunStart, Opts: %"PRIu64, *opts);
         return SC_CHARACTER_RUN_START_JUMP;
     } else if (e == SC_EVENT_RUN_STOP) {
-        //SDL_Log("InputRunStopJump 1 of 2 keys released");
         // If both left and right were down, update *opts with
         // correct direction to move
         Uint64 optUpdate =  (*opts & CHARACTER_MOVE_RIGHT) > 0 ? CHARACTER_MOVE_LEFT : CHARACTER_MOVE_RIGHT;
@@ -586,7 +575,6 @@ int CharacterInputRunStopJump(void *el, SC_Event e, Uint64 now, Uint64 *opts)
         if (c->vel.y < PLAYER_Y_VEL_STOP) {
             c->vel.y = PLAYER_Y_VEL_STOP;
         }
-        SDL_Log(">>>>>>>");
         *opts |= c->acc.x < 0 ? CHARACTER_MOVE_RIGHT : CHARACTER_MOVE_LEFT;
         return SC_CHARACTER_RUN_STOP_FALL;
     }
@@ -613,7 +601,6 @@ int CharacterTickRunStopJump(void *el, Uint64 delta, Uint64 now, Uint64 *opts)
 
     if (c->vel.y >= 0) {
         *opts |= (c->acc.x > 0 ? CHARACTER_MOVE_RIGHT : CHARACTER_MOVE_LEFT);
-        SDL_Log("-- TickRunStopJump -- opts %"SDL_PRIu64, *opts);
         return SC_CHARACTER_RUN_STOP_FALL;
     }
 
@@ -626,10 +613,14 @@ void CharacterEnterRunStopFall(void *el, Uint64 *opts)
     SC_Character *c = el;
     float dir = (*opts & CHARACTER_MOVE_RIGHT) > 0 ? -1.0f : 1.0f;
 
+    if (dir < 0 && c->vel.x < 0) {
+        dir = 1.0f;
+    } else if (dir > 0 && c->vel.x > 0) {
+        dir = -1.0f;
+    }
+
     c->acc.x = dir * PLAYER_X_ACC_STOP;
     c->acc.y = PLAYER_Y_ACC;
-
-    SDL_Log("-- EnterRunStopFall -- dir: %f | acc.x: %f | acc.y %f | vel.x %f", dir, c->acc.x, c->acc.y, c->vel.x);
 }
 
 void CharacterExitRunStopFall(void *el, Uint64 *opts)
@@ -639,17 +630,13 @@ void CharacterExitRunStopFall(void *el, Uint64 *opts)
 int CharacterInputRunStopFall(void *el, SC_Event e, Uint64 now, Uint64 *opts)
 {
     if (e == SC_EVENT_RUN_START) {
-        SDL_Log("Curr: RunStop, Next: RunStart, Opts: %"PRIu64, *opts);
         return SC_CHARACTER_RUN_START_FALL;
     } else if (e == SC_EVENT_RUN_STOP) {
         // If both left and right were down, update *opts with
         // correct direction to move
-        SDL_Log("%"SDL_PRIu64, *opts);
         Uint64 optUpdate =  (*opts & CHARACTER_MOVE_RIGHT) > 0 ? CHARACTER_MOVE_LEFT : CHARACTER_MOVE_RIGHT;
-        SDL_Log("%"SDL_PRIu64, optUpdate);
         *opts &= ~*opts;
         *opts |= optUpdate;
-        SDL_Log("%"SDL_PRIu64, *opts);
         return SC_CHARACTER_RUN_START_FALL;
     }
 

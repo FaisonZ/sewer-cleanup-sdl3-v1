@@ -179,7 +179,7 @@ void tick(SC_AppState *scAppState, Uint64 now)
     scAppState->msAccum += now - scAppState->prevTick;
 
     while (scAppState->msAccum >= FIXED_TICK_RATE) {
-        tickCharacters(scAppState, FIXED_TICK_RATE/2.0, now);
+        tickCharacters(scAppState, FIXED_TICK_RATE, now);
 
         scAppState->msAccum -= FIXED_TICK_RATE;
     }
