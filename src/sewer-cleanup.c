@@ -211,8 +211,81 @@ SDL_AppResult SDL_AppIterate(void *appstate)
         .w = 40.0f,
         .h = 40.0f,
     };
+
+    SDL_FRect pH = {
+        .x = p.x + 13.0f,
+        .y = p.y + 13.0f,
+        .w = 14.0f,
+        .h = 14.0f,
+    };
+
+    SC_Character *c = scAppState->characters;
+    float dir = 1.0f;
+    float s = 0.0f;
+    switch (c->state) {
+        case SC_CHARACTER_RUN_START:
+        case SC_CHARACTER_RUN_START_JUMP:
+        case SC_CHARACTER_RUN_START_FALL:
+            if (c->vel.x > 0) {
+                dir = 1.0f;
+            } else {
+                dir = -1.0f;
+            }
+            s = 6.0f;
+            break;
+        case SC_CHARACTER_RUN_STOP:
+        case SC_CHARACTER_RUN_STOP_JUMP:
+        case SC_CHARACTER_RUN_STOP_FALL:
+            if (c->vel.x > 0) {
+                dir = 1.0f;
+            } else {
+                dir = -1.0f;
+            }
+            s = 6.0f;
+            break;
+        case SC_CHARACTER_RUN:
+        case SC_CHARACTER_RUN_JUMP:
+        case SC_CHARACTER_RUN_FALL:
+            dir = c->vel.x > 0 ? 1.0f : -1.0f;
+            s = 12.0f;
+            break;
+        default:
+            break;
+    }
+    pH.x += dir * s;
+
+    dir = 1.0f;
+    s = 0.0f;
+    switch (c->state) {
+        case SC_CHARACTER_STAND_JUMP:
+        case SC_CHARACTER_RUN_START_JUMP:
+        case SC_CHARACTER_RUN_STOP_JUMP:
+        case SC_CHARACTER_RUN_JUMP:
+            dir = -1.0f;
+            break;
+        case SC_CHARACTER_STAND_FALL:
+        case SC_CHARACTER_RUN_START_FALL:
+        case SC_CHARACTER_RUN_STOP_FALL:
+        case SC_CHARACTER_RUN_FALL:
+            dir = 1.0f;
+            break;
+        default:
+            break;
+    }
+    float absY = SDL_fabsf(c->vel.y);
+    if (absY < 0.2 * PLAYER_Y_VEL_MAX) {
+        s = 4.0f;
+    } else if (absY < 0.6 * PLAYER_Y_VEL_MAX) {
+        s = 6.0f;
+    } else {
+        s = 12.0f;
+    }
+    pH.y += dir * s;
+
     SDL_SetRenderDrawColor(renderer, 254, 231, 97, SDL_ALPHA_OPAQUE);
     SDL_RenderFillRect(renderer, &p);
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+    SDL_RenderFillRect(renderer, &pH);
 
     SDL_SetRenderScale(renderer, 3.0f, 3.0f);
     SDL_SetRenderDrawColor(renderer, 255, 238, 229, SDL_ALPHA_OPAQUE);
