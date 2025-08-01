@@ -27,7 +27,7 @@ int CharacterInputStand(void *el, SC_Event e, Uint64 now, Uint64 *opts)
     if (e == SC_EVENT_RUN_START) {
         return SC_CHARACTER_RUN_START;
     } else if (e == SC_EVENT_RUN_STOP) {
-        // If both left and right were down, update opts with
+        // If both left and right were down, update *opts with
         // correct direction to move
         Uint64 optUpdate =  (*opts & CHARACTER_MOVE_RIGHT) > 0 ? CHARACTER_MOVE_LEFT : CHARACTER_MOVE_RIGHT;
         *opts &= ~*opts;
@@ -57,10 +57,13 @@ void CharacterExitRun(void *el, Uint64 *opts)
 
 int CharacterInputRun(void *el, SC_Event e, Uint64 now, Uint64 *opts)
 {
+    SC_Character *c = el;
     if (e == SC_EVENT_RUN_STOP) {
-        return SC_CHARACTER_STAND;
+        return SC_CHARACTER_RUN_STOP;
     } else if (e == SC_EVENT_RUN_START) {
-        return SC_CHARACTER_STAND;
+        *opts &= ~(c->vel.x > 0 ? CHARACTER_MOVE_LEFT : CHARACTER_MOVE_RIGHT);
+        *opts |= c->vel.x > 0 ? CHARACTER_MOVE_RIGHT : CHARACTER_MOVE_LEFT;
+        return SC_CHARACTER_RUN_STOP;
     }
     return SC_FSM_NO_CHANGE;
 }
@@ -76,7 +79,9 @@ void CharacterEnterRunStart(void *el, Uint64 *opts)
 {
     SC_Character *c = el;
     float dir = (*opts & CHARACTER_MOVE_RIGHT) > 0 ? 1.0f : -1.0f;
-    c->vel.x = dir * PLAYER_X_VEL_START;
+    if (c->vel.x == 0) {
+        c->vel.x = dir * PLAYER_X_VEL_START;
+    }
     c->acc.x = dir * PLAYER_X_ACC;
 }
 
@@ -88,10 +93,16 @@ void CharacterExitRunStart(void *el, Uint64 *opts)
 
 int CharacterInputRunStart(void *el, SC_Event e, Uint64 now, Uint64 *opts)
 {
+    SC_Character *c = el;
+
     if (e == SC_EVENT_RUN_STOP) {
-        return SC_CHARACTER_STAND;
+        return SC_CHARACTER_RUN_STOP;
     } else if (e == SC_EVENT_RUN_START) {
-        return SC_CHARACTER_STAND;
+        // If both left and right were down, update *opts with
+        // correct move direction
+        *opts &= ~(c->vel.x > 0 ? CHARACTER_MOVE_LEFT : CHARACTER_MOVE_RIGHT);
+        *opts |= c->vel.x > 0 ? CHARACTER_MOVE_RIGHT : CHARACTER_MOVE_LEFT;
+        return SC_CHARACTER_RUN_STOP;
     }
     return SC_FSM_NO_CHANGE;
 }
@@ -111,6 +122,49 @@ int CharacterTickRunStart(void *el, Uint64 delta, Uint64 now, Uint64 *opts)
 
     c->pos.x += delta * c->vel.x;
     return ret;
+}
+
+void CharacterEnterRunStop(void *el, Uint64 *opts)
+{
+    SC_Character *c = el;
+    float dir = (*opts & CHARACTER_MOVE_RIGHT) > 0 ? -1.0f : 1.0f;
+    c->acc.x = dir * PLAYER_X_ACC;
+}
+
+void CharacterExitRunStop(void *el, Uint64 *opts)
+{
+    SC_Character *c = el;
+    c->acc.x = 0;
+}
+
+int CharacterInputRunStop(void *el, SC_Event e, Uint64 now, Uint64 *opts)
+{
+    if (e == SC_EVENT_RUN_START) {
+        SDL_Log("Curr: RunStop, Next: RunStart, Opts: %"PRIu64, *opts);
+        return SC_CHARACTER_RUN_START;
+    } else if (e == SC_EVENT_RUN_STOP) {
+        // If both left and right were down, update *opts with
+        // correct direction to move
+        Uint64 optUpdate =  (*opts & CHARACTER_MOVE_RIGHT) > 0 ? CHARACTER_MOVE_LEFT : CHARACTER_MOVE_RIGHT;
+        *opts &= ~*opts;
+        *opts |= optUpdate;
+        return SC_CHARACTER_RUN_START;
+    }
+    return SC_FSM_NO_CHANGE;
+}
+
+int CharacterTickRunStop(void *el, Uint64 delta, Uint64 now, Uint64 *opts)
+{
+    SC_Character *c = el;
+    float dir = c->acc.x > 0 ? -1.0f : 1.0f;
+    c->vel.x += delta * c->acc.x;
+
+    if (SDL_fabsf(dir * PLAYER_X_VEL_MAX - c->vel.x) >= PLAYER_X_VEL_MAX) {
+        return SC_CHARACTER_STAND;
+    }
+
+    c->pos.x += delta * c->vel.x;
+    return SC_FSM_NO_CHANGE;
 }
 
 void initCharacterFSM()
@@ -134,6 +188,12 @@ void initCharacterFSM()
     runStart->exit = CharacterExitRunStart;
     runStart->input = CharacterInputRunStart;
     runStart->tick = CharacterTickRunStart;
+
+    SC_FSM *runStop = FSMsCharacter + SC_CHARACTER_RUN_STOP;
+    runStop->enter = CharacterEnterRunStop;
+    runStop->exit = CharacterExitRunStop;
+    runStop->input = CharacterInputRunStop;
+    runStop->tick = CharacterTickRunStop;
 }
 
 void destroyCharacterFSM()
