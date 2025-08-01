@@ -25,14 +25,14 @@ void CharacterExitStand(void *el, Uint64 *opts)
 int CharacterInputStand(void *el, SC_Event e, Uint64 now, Uint64 *opts)
 {
     if (e == SC_EVENT_RUN_START) {
-        return SC_CHARACTER_MOVE_RUN;
+        return SC_CHARACTER_RUN;
     } else if (e == SC_EVENT_RUN_STOP) {
         // If both left and right were down, update opts with
         // correct direction to move
         Uint64 optUpdate =  (*opts & CHARACTER_MOVE_RIGHT) > 0 ? CHARACTER_MOVE_LEFT : CHARACTER_MOVE_RIGHT;
         *opts &= ~*opts;
         *opts |= optUpdate;
-        return SC_CHARACTER_MOVE_RUN;
+        return SC_CHARACTER_RUN;
     }
 
     return SC_FSM_NO_CHANGE;
@@ -58,9 +58,9 @@ void CharacterExitRun(void *el, Uint64 *opts)
 int CharacterInputRun(void *el, SC_Event e, Uint64 now, Uint64 *opts)
 {
     if (e == SC_EVENT_RUN_STOP) {
-        return SC_CHARACTER_MOVE_STAND;
+        return SC_CHARACTER_STAND;
     } else if (e == SC_EVENT_RUN_START) {
-        return SC_CHARACTER_MOVE_STAND;
+        return SC_CHARACTER_STAND;
     }
     return SC_FSM_NO_CHANGE;
 }
@@ -72,21 +72,56 @@ int CharacterTickRun(void *el, Uint64 delta, Uint64 now)
     return SC_FSM_NO_CHANGE;
 }
 
+void CharacterEnterRunStart(void *el, Uint64 *opts)
+{
+    SC_Character *c = el;
+    float dir = (*opts & CHARACTER_MOVE_RIGHT) > 0 ? 1.0f : -1.0f;
+    SDL_Log("%f", dir);
+    c->vel.x = dir * PLAYER_MAX_VEL_X;
+}
+
+void CharacterExitRunStart(void *el, Uint64 *opts)
+{
+}
+
+int CharacterInputRunStart(void *el, SC_Event e, Uint64 now, Uint64 *opts)
+{
+    if (e == SC_EVENT_RUN_STOP) {
+        return SC_CHARACTER_STAND;
+    } else if (e == SC_EVENT_RUN_START) {
+        return SC_CHARACTER_STAND;
+    }
+    return SC_FSM_NO_CHANGE;
+}
+
+int CharacterTickRunStart(void *el, Uint64 delta, Uint64 now)
+{
+    SC_Character *c = el;
+    c->pos.x += delta * c->vel.x;
+    return SC_FSM_NO_CHANGE;
+}
+
 void initCharacterFSM()
 {
     FSMsCharacter = (SC_FSM *) SDL_calloc(SC_CHARACTER_MOVE_STATE_TOTAL, sizeof(SC_FSM));
 
-    SC_FSM *stand = FSMsCharacter + SC_CHARACTER_MOVE_STAND;
+    SC_FSM *stand = FSMsCharacter + SC_CHARACTER_STAND;
     stand->enter = CharacterEnterStand;
     stand->exit = CharacterExitStand;
     stand->input = CharacterInputStand;
     stand->tick = CharacterTickStand;
 
-    SC_FSM *run = FSMsCharacter + SC_CHARACTER_MOVE_RUN;
+    SC_FSM *run = FSMsCharacter + SC_CHARACTER_RUN;
     run->enter = CharacterEnterRun;
     run->exit = CharacterExitRun;
     run->input = CharacterInputRun;
     run->tick = CharacterTickRun;
+
+    SC_FSM *runStart = FSMsCharacter + SC_CHARACTER_RUN_START;
+    runStart->enter = CharacterEnterRunStart;
+    runStart->exit = CharacterExitRunStart;
+    runStart->input = CharacterInputRunStart;
+    runStart->tick = CharacterTickRunStart;
 }
 
 void destroyCharacterFSM()

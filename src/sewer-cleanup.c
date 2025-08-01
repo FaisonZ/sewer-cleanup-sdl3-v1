@@ -33,7 +33,7 @@ void resetPlayer(SC_Character* player, Uint64 now)
     player->pos.y = GROUND_Y;
     player->vel.x = 0.0f;
     player->vel.y = 0.0f;
-    player->moveState = SC_CHARACTER_MOVE_STAND;
+    player->state = SC_CHARACTER_STAND;
 }
 
 void resetAppState(SC_AppState *scAppState, Uint64 now)
@@ -58,12 +58,12 @@ SC_AppState* initAppState(Uint64 now)
 
 void eventCharacter(SC_Character *c, SC_Event e, Uint64 now, Uint64 opts)
 {
-    int newMoveState = FSMsCharacter[c->moveState].input(c, e, now, &opts);
+    int newMoveState = FSMsCharacter[c->state].input(c, e, now, &opts);
 
     if (newMoveState != SC_FSM_NO_CHANGE) {
-        FSMsCharacter[c->moveState].exit(c, &opts);
-        c->moveState = newMoveState;
-        FSMsCharacter[c->moveState].enter(c, &opts);
+        FSMsCharacter[c->state].exit(c, &opts);
+        c->state = newMoveState;
+        FSMsCharacter[c->state].enter(c, &opts);
     }
 }
 
@@ -73,7 +73,7 @@ void tickCharacters(SC_AppState *scAppState, Uint64 delta, Uint64 now)
     for (int i = 0; i < scAppState->numCharacters; i++) {
         SC_Character *c = scAppState->characters + i;
 
-        FSMsCharacter[c->moveState].tick(c, delta, now);
+        FSMsCharacter[c->state].tick(c, delta, now);
 
     }
 }

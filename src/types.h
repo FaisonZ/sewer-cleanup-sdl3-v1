@@ -6,7 +6,7 @@
 typedef struct SC_Character {
     SDL_FPoint pos;
     SDL_FPoint vel;
-    SC_Character_Move_State moveState;
+    SC_Character_State state;
 } SC_Character;
 
 typedef struct SC_AppState {
