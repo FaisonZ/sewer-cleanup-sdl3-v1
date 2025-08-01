@@ -37,7 +37,7 @@ typedef struct SC_FSM {
     int (*tick)(void *el, Uint64 delta, Uint64 now, Uint64 *opts);
 } SC_FSM;
 
-#define SC_CHARACTER_MOVE_STATE_TOTAL 8
+#define SC_CHARACTER_MOVE_STATE_TOTAL 12
 
 typedef enum SC_Character_State {
     SC_CHARACTER_STAND,
@@ -46,8 +46,12 @@ typedef enum SC_Character_State {
     SC_CHARACTER_RUN_STOP,
     SC_CHARACTER_STAND_JUMP,
     SC_CHARACTER_STAND_FALL,
+    SC_CHARACTER_RUN_START_JUMP,
+    SC_CHARACTER_RUN_START_FALL,
     SC_CHARACTER_RUN_JUMP,
     SC_CHARACTER_RUN_FALL,
+    SC_CHARACTER_RUN_STOP_JUMP,
+    SC_CHARACTER_RUN_STOP_FALL,
 } SC_Character_State;
 
 #endif

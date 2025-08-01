@@ -56,6 +56,7 @@ void eventCharacter(SC_Character *c, SC_Event e, Uint64 now, Uint64 opts)
     int newMoveState = FSMsCharacter[c->state].input(c, e, now, &opts);
 
     if (newMoveState != SC_FSM_NO_CHANGE) {
+        //SDL_Log("Leave %d, Enter %d", c->state, newMoveState);
         FSMsCharacter[c->state].exit(c, &opts);
         c->state = newMoveState;
         FSMsCharacter[c->state].enter(c, &opts);
@@ -72,6 +73,7 @@ void tickCharacters(SC_AppState *scAppState, Uint64 delta, Uint64 now)
         int newState = FSMsCharacter[c->state].tick(c, delta, now, &opts);
 
         if (newState != SC_FSM_NO_CHANGE) {
+            //SDL_Log("Leave %d, Enter %d", c->state, newState);
             FSMsCharacter[c->state].exit(c, &opts);
             c->state = newState;
             FSMsCharacter[c->state].enter(c, &opts);
@@ -177,7 +179,7 @@ void tick(SC_AppState *scAppState, Uint64 now)
     scAppState->msAccum += now - scAppState->prevTick;
 
     while (scAppState->msAccum >= FIXED_TICK_RATE) {
-        tickCharacters(scAppState, FIXED_TICK_RATE, now);
+        tickCharacters(scAppState, FIXED_TICK_RATE/2.0, now);
 
         scAppState->msAccum -= FIXED_TICK_RATE;
     }
