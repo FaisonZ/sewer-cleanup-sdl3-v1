@@ -28,6 +28,7 @@ void resetPlayer(SC_Character* player, Uint64 now)
     player->vel.y = 0.0f;
     player->acc.x = 0.0f;
     player->acc.y = 0.0f;
+    player->flags = CHARACTER_FLAG_FACE_RIGHT;
     player->state = SC_CHARACTER_STAND;
 }
 
@@ -220,33 +221,25 @@ SDL_AppResult SDL_AppIterate(void *appstate)
     };
 
     SC_Character *c = scAppState->characters;
-    float dir = 1.0f;
+    float dir = (c->flags & CHARACTER_FLAG_FACE_RIGHT) > 0 ? 1.0f : -1.0f;
     float s = 0.0f;
     switch (c->state) {
+        case SC_CHARACTER_STAND:
+        case SC_CHARACTER_STAND_JUMP:
+        case SC_CHARACTER_STAND_FALL:
+            s = 4.0f;
+            break;
         case SC_CHARACTER_RUN_START:
         case SC_CHARACTER_RUN_START_JUMP:
         case SC_CHARACTER_RUN_START_FALL:
-            if (c->vel.x > 0) {
-                dir = 1.0f;
-            } else {
-                dir = -1.0f;
-            }
-            s = 6.0f;
-            break;
         case SC_CHARACTER_RUN_STOP:
         case SC_CHARACTER_RUN_STOP_JUMP:
         case SC_CHARACTER_RUN_STOP_FALL:
-            if (c->vel.x > 0) {
-                dir = 1.0f;
-            } else {
-                dir = -1.0f;
-            }
-            s = 6.0f;
+            s = 8.0f;
             break;
         case SC_CHARACTER_RUN:
         case SC_CHARACTER_RUN_JUMP:
         case SC_CHARACTER_RUN_FALL:
-            dir = c->vel.x > 0 ? 1.0f : -1.0f;
             s = 12.0f;
             break;
         default:
@@ -273,10 +266,12 @@ SDL_AppResult SDL_AppIterate(void *appstate)
             break;
     }
     float absY = SDL_fabsf(c->vel.y);
-    if (absY < 0.2 * PLAYER_Y_VEL_MAX) {
+    if (absY == 0.0f) {
+        s = 0.0f;
+    } else if (absY < 0.2f * PLAYER_Y_VEL_MAX) {
         s = 4.0f;
-    } else if (absY < 0.6 * PLAYER_Y_VEL_MAX) {
-        s = 6.0f;
+    } else if (absY < 0.6f * PLAYER_Y_VEL_MAX) {
+        s = 8.0f;
     } else {
         s = 12.0f;
     }

@@ -105,6 +105,7 @@ void CharacterEnterRunStart(void *el, Uint64 *opts)
     if (c->vel.x == 0) {
         c->vel.x = dir * PLAYER_X_VEL_START;
     }
+    c->flags = dir > 0 ? CHARACTER_FLAG_FACE_RIGHT : CHARACTER_FLAG_FACE_LEFT;
     c->acc.x = dir * PLAYER_X_ACC_RUN;
     c->vel.y = 0;
     c->acc.y = 0;
@@ -310,6 +311,9 @@ void CharacterEnterRunStartJump(void *el, Uint64 *opts)
     if (c->vel.x == 0) {
         c->vel.x = dir * PLAYER_X_VEL_START;
     }
+
+    c->flags = dir > 0 ? CHARACTER_FLAG_FACE_RIGHT : CHARACTER_FLAG_FACE_LEFT;
+
     c->acc.x = dir * PLAYER_X_ACC_RUN;
 
     if (c->vel.y == 0) {
@@ -380,6 +384,9 @@ void CharacterEnterRunStartFall(void *el, Uint64 *opts)
     if (c->vel.x == 0) {
         c->vel.x = dir * PLAYER_X_VEL_START;
     }
+
+    c->flags = dir > 0 ? CHARACTER_FLAG_FACE_RIGHT : CHARACTER_FLAG_FACE_LEFT;
+
     c->acc.x = dir * PLAYER_X_ACC_RUN;
 
     c->acc.y = PLAYER_Y_ACC;
