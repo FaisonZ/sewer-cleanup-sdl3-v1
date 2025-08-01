@@ -204,9 +204,9 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 
     SDL_SetRenderScale(renderer, 3.0f, 3.0f);
     SDL_SetRenderDrawColor(renderer, 255, 238, 229, SDL_ALPHA_OPAQUE);
-    SDL_RenderDebugTextFormat(renderer, 0.0f, 00.0f, "Left: %s", (scAppState->keysDown & KEY_LEFT) > 0 ? "Down" : "Up");
-    SDL_RenderDebugTextFormat(renderer, 0.0f, 40.0f, "Right: %s", (scAppState->keysDown & KEY_RIGHT) > 0 ? "Down" : "Up");
-    SDL_RenderDebugTextFormat(renderer, 0.0f, 80.0f, "Jump: %s", (scAppState->keysDown & KEY_JUMP) > 0 ? "Down" : "Up");
+    SDL_RenderDebugTextFormat(renderer, 5.0f, 05.0f, "Left: %s", (scAppState->keysDown & KEY_LEFT) > 0 ? "Down" : "Up");
+    SDL_RenderDebugTextFormat(renderer, 5.0f, 15.0f, "Right: %s", (scAppState->keysDown & KEY_RIGHT) > 0 ? "Down" : "Up");
+    SDL_RenderDebugTextFormat(renderer, 5.0f, 25.0f, "Jump: %s", (scAppState->keysDown & KEY_JUMP) > 0 ? "Down" : "Up");
     SDL_SetRenderScale(renderer, 1.0f, 1.0f);
 
     SDL_RenderPresent(renderer);
