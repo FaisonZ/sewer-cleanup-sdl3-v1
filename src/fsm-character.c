@@ -7,7 +7,8 @@ SC_FSM *FSMsCharacter;
 
 #define PLAYER_X_VEL_START 0.05f
 #define PLAYER_X_VEL_MAX   0.25f
-#define PLAYER_X_ACC       0.0005f
+#define PLAYER_X_ACC_RUN   0.00075f
+#define PLAYER_X_ACC_STOP  0.00050f
 
 #define CHARACTER_MOVE_RIGHT 0b01
 #define CHARACTER_MOVE_LEFT  0b10
@@ -82,7 +83,7 @@ void CharacterEnterRunStart(void *el, Uint64 *opts)
     if (c->vel.x == 0) {
         c->vel.x = dir * PLAYER_X_VEL_START;
     }
-    c->acc.x = dir * PLAYER_X_ACC;
+    c->acc.x = dir * PLAYER_X_ACC_RUN;
 }
 
 void CharacterExitRunStart(void *el, Uint64 *opts)
@@ -128,7 +129,7 @@ void CharacterEnterRunStop(void *el, Uint64 *opts)
 {
     SC_Character *c = el;
     float dir = (*opts & CHARACTER_MOVE_RIGHT) > 0 ? -1.0f : 1.0f;
-    c->acc.x = dir * PLAYER_X_ACC;
+    c->acc.x = dir * PLAYER_X_ACC_STOP;
 }
 
 void CharacterExitRunStop(void *el, Uint64 *opts)
