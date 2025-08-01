@@ -31,6 +31,7 @@ void CharacterEnterStand(void *el, Uint64 *opts)
     SC_Character *c = el;
     c->vel.x = 0;
     c->vel.y = 0;
+    c->acc.x = 0;
     c->acc.y = 0;
 }
 
@@ -69,6 +70,7 @@ void CharacterEnterRun(void *el, Uint64 *opts)
     SDL_Log("%f", dir);
     c->vel.x = dir * PLAYER_X_VEL_MAX;
     c->vel.y = 0;
+    c->acc.x = 0;
     c->acc.y = 0;
 }
 
@@ -110,8 +112,6 @@ void CharacterEnterRunStart(void *el, Uint64 *opts)
 
 void CharacterExitRunStart(void *el, Uint64 *opts)
 {
-    SC_Character *c = el;
-    c->acc.x = 0;
 }
 
 int CharacterInputRunStart(void *el, SC_Event e, Uint64 now, Uint64 *opts)
@@ -156,8 +156,6 @@ void CharacterEnterRunStop(void *el, Uint64 *opts)
 
 void CharacterExitRunStop(void *el, Uint64 *opts)
 {
-    SC_Character *c = el;
-    c->acc.x = 0;
 }
 
 int CharacterInputRunStop(void *el, SC_Event e, Uint64 now, Uint64 *opts)
