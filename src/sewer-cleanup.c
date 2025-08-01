@@ -33,6 +33,8 @@ void resetPlayer(SC_Character* player, Uint64 now)
     player->pos.y = GROUND_Y;
     player->vel.x = 0.0f;
     player->vel.y = 0.0f;
+    player->acc.x = 0.0f;
+    player->acc.y = 0.0f;
     player->state = SC_CHARACTER_STAND;
 }
 
@@ -72,9 +74,15 @@ void tickCharacters(SC_AppState *scAppState, Uint64 delta, Uint64 now)
 {
     for (int i = 0; i < scAppState->numCharacters; i++) {
         SC_Character *c = scAppState->characters + i;
+        Uint64 opts = 0;
 
-        FSMsCharacter[c->state].tick(c, delta, now);
+        int newState = FSMsCharacter[c->state].tick(c, delta, now, &opts);
 
+        if (newState != SC_FSM_NO_CHANGE) {
+            FSMsCharacter[c->state].exit(c, &opts);
+            c->state = newState;
+            FSMsCharacter[c->state].enter(c, &opts);
+        }
     }
 }
 
@@ -207,6 +215,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
     SDL_RenderDebugTextFormat(renderer, 5.0f, 05.0f, "Left: %s", (scAppState->keysDown & KEY_LEFT) > 0 ? "Down" : "Up");
     SDL_RenderDebugTextFormat(renderer, 5.0f, 15.0f, "Right: %s", (scAppState->keysDown & KEY_RIGHT) > 0 ? "Down" : "Up");
     SDL_RenderDebugTextFormat(renderer, 5.0f, 25.0f, "Jump: %s", (scAppState->keysDown & KEY_JUMP) > 0 ? "Down" : "Up");
+    SDL_RenderDebugTextFormat(renderer, 5.0f, 35.0f, "State: %u", scAppState->characters->state);
     SDL_SetRenderScale(renderer, 1.0f, 1.0f);
 
     SDL_RenderPresent(renderer);

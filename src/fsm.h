@@ -35,7 +35,7 @@ typedef struct SC_FSM {
     void (*enter)(void *el, Uint64 *opts);
     void (*exit)(void *el, Uint64 *opts);
     int (*input)(void *el, SC_Event e, Uint64 now, Uint64 *opts);
-    int (*tick)(void *el, Uint64 delta, Uint64 now);
+    int (*tick)(void *el, Uint64 delta, Uint64 now, Uint64 *opts);
 } SC_FSM;
 
 #define SC_CHARACTER_MOVE_STATE_TOTAL 3
