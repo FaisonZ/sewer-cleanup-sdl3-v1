@@ -212,10 +212,10 @@ void CharacterEnterStandJump(void *el, Uint64 *opts)
 {
     SC_Character *c = el;
     c->vel.x = 0;
-    c->vel.y = 0;
-    if (c->acc.y == 0) {
+    if (c->vel.y == 0) {
         c->vel.y = PLAYER_Y_VEL_START;
     }
+
     c->acc.y = PLAYER_Y_ACC;
 }
 
